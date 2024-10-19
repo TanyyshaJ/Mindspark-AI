@@ -1,0 +1,8 @@
+fastapi 
+uvicorn 
+gitpython 
+transformers 
+torch 
+networkx 
+coverage 
+requests

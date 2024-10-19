@@ -1,0 +1,36 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: |
+    pip install requests
+    python select_tests.py $(System.DefaultWorkingDirectory) $(Build.SourceVersion)
+  displayName: 'Select tests with Test-Sense'
+
+- script: |
+    pip install coverage
+    python run_tests.py $(selected_tests)
+  displayName: 'Run selected tests'
+
+# select_tests.py
+import sys
+import requests
+
+repo_path = sys.argv[1]
+commit_sha = sys.argv[2]
+
+response = requests.post("http://localhost:8000/select_tests", json={
+    "repo_path": repo_path,
+    "commit_sha": commit_sha
+})
+
+if response.status_code == 200:
+    selected_tests = response.json()["selected_tests"]
+    with open("selected_tests.txt", "w") as f:
+        f.write("\n".join(selected_tests))
+else:
+    print(f"Failed to select tests: {response.text}")
+    sys.exit(1)
